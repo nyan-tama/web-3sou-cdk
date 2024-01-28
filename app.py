@@ -144,7 +144,7 @@ class Web3souStack(Stack):
         # EC2インスタンスの定義
         ec2_instance1 = ec2.Instance(
             self, "WEB-3sou-EC2",
-            instance_type=ec2.InstanceType("t2."),
+            instance_type=ec2.InstanceType("t2.micro"),
             machine_image=ec2.GenericLinuxImage({'ap-northeast-1': 'ami-012261b9035f8f938'}),
             vpc=vpc,
             key_pair=ec2.KeyPair.from_key_pair_name(self, "KeyPair", "mac-aws-test"),
