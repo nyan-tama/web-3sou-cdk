@@ -153,9 +153,9 @@ class Web3souStack(Stack):
             open=True
         )
 
-        # EC2インスタンスをターゲットに追加
-        http_listener.add_targets("ApplicationFleet",
+        http_listener.add_targets("HttpTargets",
             port=5000,
+            protocol=elbv2.ApplicationProtocol.HTTP,
             targets=[targets.InstanceTarget(ec2_instance1, 5000)],
             health_check=elbv2.HealthCheck(
                 path="/"
