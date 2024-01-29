@@ -96,6 +96,7 @@ class Web3souStack(Stack):
         # ec2_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22)) SSM利用で不要に
         ec2_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(80))
         ec2_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(443))
+        ec2_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(5000))  # アプリケーションのポート
 
 
         # EC2インスタンスの定義の前にユーザーデータスクリプトを定義
@@ -153,7 +154,8 @@ class Web3souStack(Stack):
             open=True
         )
 
-        http_listener.add_targets("HttpTargets",
+        # EC2インスタンスをターゲットに追加
+         http_listener.add_targets("HttpTargets",
             port=5000,
             protocol=elbv2.ApplicationProtocol.HTTP,
             targets=[targets.InstanceTarget(ec2_instance1, 5000)],
@@ -164,6 +166,7 @@ class Web3souStack(Stack):
 
         # ALBアクセスログ設定
         alb.log_access_logs(log_bucket)
+
 
         # RDSサブネットグループを作成
         rds_subnet_group = rds.SubnetGroup(self, 'WEB-3sou-RDS-subnet-group',
