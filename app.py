@@ -86,34 +86,6 @@ class Web3souStack(Stack):
             ]
         )
 
-        # ALB用のセキュリティグループを作成
-        alb_sg = ec2.SecurityGroup(
-            self, 'WEB-3sou-ALB-Sg',
-            vpc=vpc,
-            allow_all_outbound=True
-        )
-
-        # ALBを作成
-        alb = elbv2.ApplicationLoadBalancer(
-            self, 'WEB-3sou-ALB',
-            vpc=vpc,
-            internet_facing=True,
-            security_group=alb_sg
-        )
-
-        # ALBアクセスログ用バケットを作成
-        log_bucket = s3.Bucket(self, "WEB-3sou-LogBucket")
-
-        # ALBリスナーを作成
-        listener = alb.add_listener('Listener', 
-            port=80,
-            open=True
-        )
-
-        # ALBアクセスログ設定
-        alb.log_access_logs(log_bucket)
-
-
 
         # EC2セキュリティグループの定義
         ec2_sg = ec2.SecurityGroup(
@@ -156,15 +128,42 @@ class Web3souStack(Stack):
             ssm_session_permissions=True  # SSMセッションマネージャのアクセスを許可
         )
 
-        # EC2インスタンスをターゲットに追加
-        listener.add_targets("ApplicationFleet",
+
+        # ALB用のセキュリティグループを作成
+        alb_sg = ec2.SecurityGroup(
+            self, 'WEB-3sou-ALB-Sg',
+            vpc=vpc,
+            allow_all_outbound=True
+        )
+
+        # ALBを作成
+        alb = elbv2.ApplicationLoadBalancer(
+            self, 'WEB-3sou-ALB',
+            vpc=vpc,
+            internet_facing=True,
+            security_group=alb_sg
+        )
+
+        # ALBアクセスログ用バケットを作成
+        log_bucket = s3.Bucket(self, "WEB-3sou-LogBucket")
+
+        # ALBリスナーを作成
+        http_listener = alb.add_listener('Listener', 
             port=80,
-            targets=[targets.InstanceTarget(ec2_instance1, 80)],
+            open=True
+        )
+
+        # EC2インスタンスをターゲットに追加
+        http_listener.add_targets("ApplicationFleet",
+            port=5000,
+            targets=[targets.InstanceTarget(ec2_instance1, 5000)],
             health_check=elbv2.HealthCheck(
                 path="/"
             )
         )
 
+        # ALBアクセスログ設定
+        alb.log_access_logs(log_bucket)
 
         # RDSサブネットグループを作成
         rds_subnet_group = rds.SubnetGroup(self, 'WEB-3sou-RDS-subnet-group',
